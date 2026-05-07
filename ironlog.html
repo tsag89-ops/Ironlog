@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>IronLog</title>
+<meta name="theme-color" content="#FF6B00">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="IronLog">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#080808;color:#F0F0F0;font-family:'Barlow Condensed','Segoe UI',system-ui,sans-serif;overscroll-behavior:none}
+input,select{background:#1A1A1A;color:#F0F0F0;border:1px solid #262626;border-radius:8px;padding:10px 12px;font-size:16px;width:100%;outline:none;font-family:inherit;-webkit-appearance:none;appearance:none;display:block}
+input:focus,select:focus{border-color:#FF6B00;box-shadow:0 0 0 2px rgba(255,107,0,.18)}
+option,optgroup{background:#1A1A1A;color:#F0F0F0}
+input[type=date]{color-scheme:dark}
+button{cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#262626}
+#root{min-height:100%}
+.page{padding:16px;padding-bottom:88px;max-width:480px;margin:0 auto}
+.card{background:#111;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid #262626}
+.card-lg{background:#111;border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid #262626}
+.section-title{font-family:'Barlow Condensed',sans-serif;font-size:23px;font-weight:800;letter-spacing:1px;margin-bottom:14px}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat-box{background:#1A1A1A;border-radius:8px;padding:8px 10px}
+.stat-lbl{font-size:9px;color:#4A4A4A;letter-spacing:1px;margin-bottom:3px}
+.stat-val{font-size:15px;font-weight:700}
+.lbl{font-size:9px;color:#4A4A4A;letter-spacing:1px;margin-bottom:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.mb10{margin-bottom:10px}
+.btn-orange{width:100%;background:#FF6B00;border:none;border-radius:10px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:1px;color:#000}
+.btn-dark{width:100%;background:#1A1A1A;border:1px solid #262626;border-radius:8px;padding:10px;color:#F0F0F0;font-size:14px;font-weight:600}
+.chip{border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-family:inherit;cursor:pointer}
+.chip-on{background:#FF6B00;color:#000;font-weight:700}
+.chip-off{background:#1A1A1A;color:#888}
+.pill{border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer}
+.pill-on{background:#FF6B00;color:#000}
+.pill-off{background:#1A1A1A;color:#888}
+.set-row{background:#111;border-radius:10px;padding:12px 14px;margin-bottom:7px;border:1px solid #262626;display:flex;align-items:center;gap:10px}
+.pr-border{border-color:#1A3A1A!important}
+.hist-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #262626;font-size:12.5px;color:#888;gap:4px;flex-wrap:wrap}
+.navbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#111;border-top:1px solid #262626;display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav-btn{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;padding:9px 0 7px;gap:3px;cursor:pointer;position:relative;transition:color .15s}
+.nav-label{font-size:8px;font-weight:500;letter-spacing:.8px;font-family:inherit}
+.header{background:#111;border-bottom:1px solid #262626;padding:10px 16px;display:'flex';align-items:center;gap:12px;position:sticky;top:0;z-index:99}
+.pbar-wrap{background:#1A1A1A;border-radius:6px;height:9px;overflow:hidden;position:relative}
+.pbar-fill{height:100%;transition:width .4s;opacity:.85}
+.pbar-marker{position:absolute;top:0;width:2px;height:100%;background:#262626;z-index:2}
+.rest-box{border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.rest-progress{background:#262626;border-radius:4px;height:5px;margin-top:6px;overflow:hidden}
+.rest-fill{height:100%;transition:width 1s linear}
+.preview-box{background:#1A1A1A;border-radius:8px;padding:8px 12px;margin-bottom:10px;display:flex;gap:14px;flex-wrap:wrap;font-size:13px}
+.sugg-box{display:flex;align-items:center;gap:6px;font-size:12px;color:#4A4A4A;padding:6px 10px;background:#1A1A1A;border-radius:8px;margin-bottom:10px}
+.empty{text-align:center;padding:36px 0;color:#4A4A4A}
+.empty-icon{font-size:32px;margin-bottom:8px}
+.mono{font-family:'JetBrains Mono',monospace}
+.condensed{font-family:'Barlow Condensed',sans-serif;font-weight:700}
+.meso-row{display:grid;grid-template-columns:48px 1fr 1fr;gap:6px;margin-bottom:6px;align-items:center}
+.install-banner{background:#1A1200;border:1px solid #FF6B00;border-radius:10px;padding:10px 14px;margin:0 16px 12px;display:flex;align-items:center;gap:10px;font-size:13px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+'use strict';
+const EX={'Στήθος':['Bench Press','Incline Bench Press','Dumbbell Press','Incline DB Press','Decline Bench Press','Cable Fly','Pec Deck','Dips'],'Πλάτη':['Deadlift','Barbell Row','Chest-Supported Row','Single-Arm DB Row','Lat Pulldown','Wide-Grip Pulldown','Pull-Up','Cable Row','Straight-Arm Pulldown','Face Pull'],'Πόδια':['Squat','Front Squat','Leg Press','Romanian Deadlift','Bulgarian Split Squat','Hack Squat','Walking Lunges','Leg Extension','Seated Leg Curl','Standing Calf Raise','Seated Calf Raise'],'Ώμοι':['Overhead Press','Lateral Raise','Front Raise','Cable Lateral Raise'],'Δικέφαλα':['Barbell Curl','Dumbbell Curl','Hammer Curl','Incline DB Curl','Cable Curl','Preacher Curl'],'Τρικέφαλα':['Pushdown','Overhead Extension','Skull Crusher','Close-Grip Bench','Dips - Tri'],'Core':['Plank','Dead Bug','Ab Wheel','Cable Crunch','Hanging Leg Raise'],'Γλουτοί':['Hip Thrust','Glute Bridge','Cable Kickback'],'Γάμπες':['Standing Calf Raise','Seated Calf Raise']};
+const MUSCLES=Object.keys(EX);
+const SPLITS=['Push','Pull','Legs','Upper','Lower','Full Body','Arms','Chest','Back','Shoulders','Deload'];
+const VOL={Στήθος:[10,20],Πλάτη:[10,20],Πόδια:[10,20],Ώμοι:[8,16],Δικέφαλα:[8,14],Τρικέφαλα:[8,14],Core:[6,12],Γλουτοί:[8,16],Γάμπες:[6,12]};
+const PR_EX=['Squat','Bench Press','Deadlift','Overhead Press','Pull-Up','Barbell Row','Romanian Deadlift','Leg Press','Incline Bench Press','Hip Thrust'];
+const MESO_EX=['Squat','Bench Press','Deadlift','Overhead Press','Romanian Deadlift','Lat Pulldown','Barbell Row','Pull-Up','Incline DB Press','Lateral Raise','Barbell Curl','Pushdown','Hip Thrust','Leg Press','Leg Curl'];
+const SK='ironlog_v3';
+const INIT={workoutLog:[],prs:{},bodyMeasurements:[],oneRMHistory:{},mesocycle:{data:{},weeks:8,exercises:MESO_EX}};
+const c1RM=(w,r)=>(w>0&&r>0)?Math.round(w*(1+r/30)*10)/10:0;
+const getMuscle=ex=>{for(const[m,xs]of Object.entries(EX))if(xs.includes(ex))return m;return'';};
+const getWeek=d=>{const dt=new Date(d),s=new Date(dt.getFullYear(),0,1);return Math.ceil(((dt-s)/86400000+s.getDay()+1)/7);};
+const today=()=>new Date().toISOString().split('T')[0];
+const fmtDate=d=>new Date(d).toLocaleDateString('el-GR',{day:'2-digit',month:'2-digit',year:'numeric'});
+const loadData=()=>{try{const d=localStorage.getItem(SK);return d?JSON.parse(d):null;}catch{return null;}};
+const saveData=d=>{try{localStorage.setItem(SK,JSON.stringify(d));}catch{}};
+const clone=d=>JSON.parse(JSON.stringify(d));
+const RPE_VALS=[6,6.5,7,7.5,8,8.5,9,9.5,10];
+const ICONS={dumbbell:'M6.5 6.5l11 11M17.8 4.2a2 2 0 0 1 0 2.83L16.1 8.7M6.3 15.3l-2.1 2.1a1.414 1.414 0 0 1-2-2L4.3 13.3M9.5 6.5l-5 5 3 3 5-5M14.5 11.5l5-5-3-3-5 5',trophy:'M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2z',bars:'M3 3v18h18M7 16l4-4 4 4 4-4',trending:'M23 6l-9.5 9.5-5-5L1 18M17 6h6v6',user:'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',calendar:'M3 4h18a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM16 2v4M8 2v4M1 10h22',trash:'M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M9 6V4h6v2M10 11v6M14 11v6',timer:'M12 22a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 8v5l3 3M5 5.1L2.9 3',zap:'M13 2L3 14h9l-1 8 10-12h-9z',info:'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 8h.01M11 12h1v4h1'};
+const ico=(n,sz,c)=>`<svg width="${sz||20}" height="${sz||20}" viewBox="0 0 24 24" fill="none" stroke="${c||'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${ICONS[n]}"/></svg>`;
+
+let STATE=loadData()||clone(INIT);
+let TAB='log';
+let restTimer=null,restLeft=0,restDur=120,restActive=false;
+let volWeek=getWeek(today());
+let chartEx='Bench Press';
+let plannerEx=MESO_EX[0];
+let installPrompt=null,showInstall=false;
+let logState={date:today(),split:'Push',exercise:'Bench Press',weight:'',reps:'',rpe:'8',notes:''};
+const BF_FIELDS=[['weight','ΒΑΡΟΣ (KG)','75'],['bodyFat','ΛΙΠΟΣ (%)','15'],['waist','ΜΕΣΗ (CM)','80'],['hips','ΓΟΦΟΙ (CM)','95'],['chest','ΘΩΡΑΚΑΣ (CM)','100'],['biceps','ΔΙΚΕΦΑΛΑ (CM)','35']];
+let bodyForm=BF_FIELDS.reduce((a,[k])=>({...a,[k]:''}),{date:today(),notes:''});
+
+const saveAndRender=nd=>{STATE=nd;saveData(STATE);renderApp();};
+
+// DOM helpers
+const $=id=>document.getElementById(id);
+const mk=(tag,attrs,html)=>{const e=document.createElement(tag);if(attrs)for(const[k,v]of Object.entries(attrs)){if(k==='style'&&typeof v==='object')Object.assign(e.style,v);else if(k.startsWith('on'))e.addEventListener(k.slice(2).toLowerCase(),v);else e.setAttribute(k,v);}if(html!==undefined)e.innerHTML=html;return e;};
+const div2=(attrs,html)=>mk('div',attrs,html);
+const btn2=(attrs,text)=>mk('button',{type:'button',...attrs},text);
+const inp2=attrs=>mk('input',attrs);
+const statBox=(l,v,col,mono)=>{const b=div2({'class':'stat-box'},'');b.innerHTML=`<div class="stat-lbl">${l}</div><div class="stat-val${mono?' mono':''}" style="${col?'color:'+col:''}">${v}</div>`;return b;};
+const lbl2=t=>{const d=div2({'class':'lbl'},'');d.textContent=t;return d;};
+
+// Chart
+function buildChart(data,color){
+  color=color||'#FF6B00';
+  if(!data||data.length<2){const d=div2({'class':'empty'},'');d.innerHTML=`<div class="empty-icon">📉</div>Κανένα δεδομένο. Κατέγραψε sets ή πρόσθεσε χειροκίνητα.`;return d;}
+  const cv=document.createElement('canvas');cv.style.cssText='width:100%;height:190px;display:block';
+  const draw=()=>{const dpr=window.devicePixelRatio||1,W=cv.offsetWidth||320,H=190;cv.width=W*dpr;cv.height=H*dpr;const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);const p={l:46,r:14,t:14,b:30},pw=W-p.l-p.r,ph=H-p.t-p.b;const vals=data.map(d=>d.v),mn=Math.min(...vals),mx=Math.max(...vals),sp=mx-mn||10;const lo=mn-sp*.1,hi=mx+sp*.1,rng=hi-lo;const tx=i=>p.l+(i/(data.length-1))*pw,ty=v=>p.t+(1-(v-lo)/rng)*ph;ctx.clearRect(0,0,W,H);for(let f=0;f<=1;f+=.25){const y=p.t+f*ph;ctx.strokeStyle='#262626';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();ctx.fillStyle='#4A4A4A';ctx.font='10px JetBrains Mono,monospace';ctx.textAlign='right';ctx.fillText(Math.round(hi-f*rng),p.l-5,y+4);}const g=ctx.createLinearGradient(0,p.t,0,p.t+ph);g.addColorStop(0,color+'30');g.addColorStop(1,color+'00');ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(tx(0),ty(data[0].v));data.forEach((d,i)=>ctx.lineTo(tx(i),ty(d.v)));ctx.lineTo(tx(data.length-1),p.t+ph);ctx.lineTo(tx(0),p.t+ph);ctx.closePath();ctx.fill();ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();data.forEach((d,i)=>{i===0?ctx.moveTo(tx(0),ty(d.v)):ctx.lineTo(tx(i),ty(d.v));});ctx.stroke();data.forEach((d,i)=>{ctx.fillStyle='#111';ctx.beginPath();ctx.arc(tx(i),ty(d.v),5,0,Math.PI*2);ctx.fill();ctx.fillStyle=color;ctx.beginPath();ctx.arc(tx(i),ty(d.v),3.5,0,Math.PI*2);ctx.fill();});const step=Math.max(1,Math.ceil(data.length/7));data.forEach((d,i)=>{if(i%step===0||i===data.length-1){ctx.fillStyle='#4A4A4A';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.fillText(d.k,tx(i),H-6);}});};
+  requestAnimationFrame(()=>requestAnimationFrame(draw));return cv;
+}
+
+// Rest timer
+const startRest=()=>{clearInterval(restTimer);restLeft=restDur;restActive=true;updateRestUI();restTimer=setInterval(()=>{restLeft--;if(restLeft<=0){clearInterval(restTimer);restActive=false;restLeft=0;}updateRestUI();},1000);};
+const skipRest=()=>{clearInterval(restTimer);restActive=false;restLeft=0;updateRestUI();};
+const updateRestUI=()=>{const box=$('rest-box');if(!box)return;if(!restActive&&restLeft===0){box.style.display='none';return;}box.style.display='flex';const rc=restLeft<30?'#FF6B00':'#00E676';box.style.background=restLeft<30?'#180800':'#041408';box.style.borderColor=rc;const tEl=$('rest-time');if(tEl){tEl.textContent=`REST — ${Math.floor(restLeft/60)}:${String(restLeft%60).padStart(2,'0')}`;tEl.style.color=rc;}const fill=$('rest-fill');if(fill){fill.style.background=rc;fill.style.width=`${restLeft/restDur*100}%`;}};
+
+// Export / Import
+function exportData(){
+  const json=JSON.stringify(STATE,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='ironlog-backup-'+today()+'.json';a.click();URL.revokeObjectURL(a.href);
+}
+function importData(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';
+  inp.addEventListener('change',e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const parsed=JSON.parse(ev.target.result);
+        if(!parsed.workoutLog||!parsed.prs)throw new Error('Invalid');
+        if(!confirm('Αυτό θα αντικαταστήσει όλα τα τρέχοντα δεδομένα. Συνέχεια;'))return;
+        saveAndRender(parsed);
+        alert('✅ Δεδομένα εισήχθησαν επιτυχώς!');
+      }catch{alert('❌ Μη έγκυρο αρχείο backup.');}
+    };
+    reader.readAsText(file);
+  });
+  inp.click();
+}
+
+// Build header
+function buildHeader(){
+  const h=div2({style:{background:'#111',borderBottom:'1px solid #262626',padding:'10px 16px',display:'flex',alignItems:'center',gap:'12px',position:'sticky',top:'0',zIndex:'99'}},'');
+  h.innerHTML=`<span style="font-size:22px;filter:drop-shadow(0 0 10px #FF6B00)">⚡</span><div><div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;letter-spacing:2px;color:#FF6B00;line-height:1">IRONLOG</div><div style="font-size:8px;color:#4A4A4A;letter-spacing:3px">WORKOUT TRACKER</div></div><div style="margin-left:auto;display:flex;align-items:center;gap:6px"></div>`;
+  const right=h.querySelector('div:last-child');
+  // Date info
+  const dateInfo=div2({style:{textAlign:'right',marginRight:'4px'}},'');dateInfo.innerHTML=`<div style="font-size:12px;color:#888">${new Date().toLocaleDateString('el-GR')}</div><div style="font-size:10px;color:#4A4A4A">Εβδ. ${getWeek(today())}</div>`;right.appendChild(dateInfo);
+  // Export button
+  const expBtn=btn2({title:'Εξαγωγή δεδομένων',style:{background:'#1A1A1A',border:'1px solid #262626',borderRadius:'8px',padding:'6px 8px',color:'#888',display:'flex',alignItems:'center',gap:'4px',fontSize:'11px',fontWeight:'700',whiteSpace:'nowrap'},onClick:exportData});
+  expBtn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>`;
+  right.appendChild(expBtn);
+  // Import button
+  const impBtn=btn2({title:'Εισαγωγή δεδομένων',style:{background:'#1A1A1A',border:'1px solid #262626',borderRadius:'8px',padding:'6px 8px',color:'#888',display:'flex',alignItems:'center',gap:'4px',fontSize:'11px',fontWeight:'700',whiteSpace:'nowrap'},onClick:importData});
+  impBtn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>`;
+  right.appendChild(impBtn);
+  return h;
+}
+
+// Build nav
+const TABS=[{id:'log',icon:'dumbbell',label:'LOG'},{id:'pr',icon:'trophy',label:'PRs'},{id:'volume',icon:'bars',label:'VOLUME'},{id:'charts',icon:'trending',label:'1RM'},{id:'body',icon:'user',label:'BODY'},{id:'planner',icon:'calendar',label:'PLAN'}];
+function buildNav(){
+  const nav=mk('nav',{'class':'navbar'},'');
+  TABS.forEach(t=>{
+    const active=t.id===TAB;
+    const b=btn2({style:{flex:'1',border:'none',background:'none',display:'flex',flexDirection:'column',alignItems:'center',padding:'9px 0 7px',gap:'3px',cursor:'pointer',position:'relative',color:active?'#FF6B00':'#4A4A4A',transition:'color .15s'},onClick:()=>{TAB=t.id;renderApp();}});
+    b.innerHTML=(active?`<div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:2px;background:#FF6B00;border-radius:0 0 3px 3px"></div>`:'')+ico(t.icon,19,active?'#FF6B00':'#4A4A4A')+`<span class="nav-label" style="font-weight:${active?800:500}">${t.label}</span>`;
+    nav.appendChild(b);
+  });
+  return nav;
+}
+
+// LOG TAB
+function buildLogTab(){
+  const page=div2({'class':'page'},'');
+
+  // Rest box
+  const restBox=div2({id:'rest-box','class':'rest-box',style:{display:restActive?'flex':'none',border:'1px solid #00E676'}},'');
+  restBox.innerHTML=`${ico('timer',22,'#00E676')}<div style="flex:1"><div id="rest-time" class="condensed" style="font-size:24px;letter-spacing:1px;color:#00E676">REST — ${Math.floor(restLeft/60)}:${String(restLeft%60).padStart(2,'0')}</div><div class="rest-progress"><div id="rest-fill" class="rest-fill" style="background:#00E676;width:${restLeft/restDur*100}%"></div></div></div>`;
+  const skipBtn=btn2({'class':'pill pill-off',style:{flexShrink:'0'},onClick:skipRest},'Skip');
+  restBox.appendChild(skipBtn);
+  page.appendChild(restBox);
+  if(restActive)updateRestUI();
+
+  const form=div2({'class':'card-lg'},'');
+
+  // Title + pills
+  const topRow=div2({style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}},'');
+  topRow.innerHTML=`<div class="condensed" style="font-size:19px;letter-spacing:1px;color:#FF6B00">+ LOG SET</div>`;
+  const pw=div2({style:{display:'flex',gap:'4px'}},'');
+  [60,90,120,180].forEach(s=>{const p=btn2({'class':'pill '+(restDur===s?'pill-on':'pill-off'),onClick:()=>{restDur=s;renderApp();}},s+'s');pw.appendChild(p);});
+  topRow.appendChild(pw);form.appendChild(topRow);
+
+  // Date + split
+  const r1=div2({'class':'grid2'},'');
+  const dw=div2({},'');dw.appendChild(lbl2('ΗΜΕΡΟΜΗΝΙΑ'));
+  const di=inp2({type:'date',value:logState.date});di.addEventListener('change',e=>logState.date=e.target.value);dw.appendChild(di);r1.appendChild(dw);
+  const sw=div2({},'');sw.appendChild(lbl2('SPLIT'));
+  const ss=mk('select',{},'');SPLITS.forEach(s=>{const o=mk('option',{value:s},s);if(s===logState.split)o.selected=true;ss.appendChild(o);});
+  ss.addEventListener('change',e=>logState.split=e.target.value);sw.appendChild(ss);r1.appendChild(sw);form.appendChild(r1);
+
+  // Exercise
+  const ew=div2({'class':'mb10'},'');ew.appendChild(lbl2('ΑΣΚΗΣΗ'));
+  const es=mk('select',{},'');
+  Object.entries(EX).forEach(([m,xs])=>{const og=document.createElement('optgroup');og.label=`── ${m}`;xs.forEach(x=>{const o=mk('option',{value:x},x);if(x===logState.exercise)o.selected=true;og.appendChild(o);});es.appendChild(og);});
+  es.addEventListener('change',e=>{logState.exercise=e.target.value;renderApp();});ew.appendChild(es);form.appendChild(ew);
+
+  // Weight / reps / rpe
+  const r2=div2({style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'10px',marginBottom:'10px'}},'');
+  const ww=div2({},'');ww.appendChild(lbl2('ΒΑΡΟΣ (KG)'));
+  const wi=inp2({type:'number',inputmode:'decimal',placeholder:'80',value:logState.weight});wi.addEventListener('input',e=>{logState.weight=e.target.value;previewUpdate();});ww.appendChild(wi);r2.appendChild(ww);
+  const rw=div2({},'');rw.appendChild(lbl2('ΕΠΑΝΑΛ.'));
+  const ri=inp2({type:'number',inputmode:'numeric',placeholder:'5',value:logState.reps});ri.addEventListener('input',e=>{logState.reps=e.target.value;previewUpdate();});rw.appendChild(ri);r2.appendChild(rw);
+  const rpew=div2({},'');rpew.appendChild(lbl2('RPE'));
+  const rpeSel=mk('select',{},'');RPE_VALS.forEach(v=>{const o=mk('option',{value:v},v);if(String(v)===logState.rpe)o.selected=true;rpeSel.appendChild(o);});rpeSel.addEventListener('change',e=>logState.rpe=e.target.value);rpew.appendChild(rpeSel);r2.appendChild(rpew);form.appendChild(r2);
+
+  // Preview
+  const pvBox=div2({id:'log-preview','class':'preview-box',style:{display:'none'}},'');form.appendChild(pvBox);
+  function previewUpdate(){const w=parseFloat(logState.weight||'0'),r=parseInt(logState.reps||'0'),est=c1RM(w,r);pvBox.style.display=(w>0&&r>0)?'flex':'none';const pr=STATE.prs[logState.exercise];pvBox.innerHTML=`<span style="color:#888">Volume: <b style="color:#F0F0F0">${Math.round(w*r).toLocaleString()}kg</b></span><span style="color:#888">Est. 1RM: <b style="color:#FF6B00">${est}kg</b></span>${(est>0&&(!pr||est>pr.est1RM))?'<span style="color:#00E676;font-weight:700">🏆 NEW PR!</span>':''}`;}
+  if(logState.weight&&logState.reps)previewUpdate();
+
+  // Suggestion
+  const prevSets=[...STATE.workoutLog].filter(e=>e.exercise===logState.exercise).reverse().slice(0,3);
+  const lastSet=prevSets[0];
+  if(lastSet){const s=div2({'class':'sugg-box'},'');s.innerHTML=`${ico('zap',11,'#FF6B00')} <span>Overload: <span style="color:#888">${lastSet.weight}kg × ${lastSet.reps+1}  ή  ${(lastSet.weight+2.5).toFixed(1)}kg × ${lastSet.reps}</span></span>`;form.appendChild(s);}
+
+  // Notes
+  const nw=div2({'class':'mb10'},'');nw.appendChild(lbl2('ΣΗΜΕΙΩΣΕΙΣ'));
+  const ni=inp2({type:'text',placeholder:'...',value:logState.notes});ni.addEventListener('input',e=>logState.notes=e.target.value);nw.appendChild(ni);form.appendChild(nw);
+
+  // Log button
+  const logBtn=btn2({'class':'btn-orange',onClick:()=>{
+    const w=parseFloat(logState.weight),r=parseInt(logState.reps);if(!w||!r||w<=0||r<=0)return;
+    const muscle=getMuscle(logState.exercise),vol=+(w*r).toFixed(1),est=c1RM(w,r),week=getWeek(logState.date);
+    const prevPR=STATE.prs[logState.exercise],isPR=!prevPR||est>prevPR.est1RM;
+    const entry={id:Date.now(),date:logState.date,week,split:logState.split,exercise:logState.exercise,muscleGroup:muscle,weight:w,reps:r,rpe:parseFloat(logState.rpe),volume:vol,est1RM:est,isPR,notes:logState.notes};
+    const nd=clone(STATE);nd.workoutLog.push(entry);
+    if(isPR)nd.prs[logState.exercise]={weight:w,reps:r,est1RM:est,date:logState.date,rpe:parseFloat(logState.rpe),prevEst1RM:prevPR?prevPR.est1RM:null};
+    if(!nd.oneRMHistory[logState.exercise])nd.oneRMHistory[logState.exercise]={};
+    const wk='W'+week;if(!nd.oneRMHistory[logState.exercise][wk]||est>nd.oneRMHistory[logState.exercise][wk])nd.oneRMHistory[logState.exercise][wk]=est;
+    logState.reps='';logState.notes='';startRest();saveAndRender(nd);
+  }},'LOG SET →');
+  form.appendChild(logBtn);page.appendChild(form);
+
+  // History
+  if(prevSets.length>0){
+    const hc=div2({'class':'card'},'');
+    const hl=div2({'class':'lbl',style:{marginBottom:'8px'}},'');hl.textContent='ΙΣΤΟΡΙΚΟ — '+logState.exercise.toUpperCase();hc.appendChild(hl);
+    prevSets.forEach(s=>{const row=div2({'class':'hist-row'},'');row.innerHTML=`<span>${fmtDate(s.date)}</span><span><b style="color:#F0F0F0">${s.weight}kg × ${s.reps}</b> @ RPE${s.rpe}</span><span style="color:#FF6B00">1RM: ${s.est1RM}</span>`;hc.appendChild(row);});
+    const pr=STATE.prs[logState.exercise];if(pr){const pd=div2({style:{marginTop:'8px',fontSize:'12px',color:'#00E676'}},'');pd.textContent=`🏆 PR: ${pr.weight}kg × ${pr.reps} → ${pr.est1RM}kg`;hc.appendChild(pd);}
+    page.appendChild(hc);
+  }
+
+  // Today's sets
+  const todaySets=[...STATE.workoutLog].filter(e=>e.date===logState.date).reverse();
+  if(todaySets.length>0){
+    const th=div2({style:{fontFamily:'Barlow Condensed,sans-serif',fontSize:'15px',fontWeight:'700',color:'#888',letterSpacing:'1px',marginBottom:'10px'}},'');
+    th.textContent=`ΣΗΜΕΡΑ — ${todaySets.length} SETS · ${Math.round(todaySets.reduce((s,e)=>s+e.volume,0)).toLocaleString()}kg`;page.appendChild(th);
+    todaySets.forEach(s=>{
+      const row=div2({'class':'set-row'+(s.isPR?' pr-border':'')},'');
+      if(s.isPR){const star=mk('span',{style:{fontSize:'17px'}},'🏆');row.appendChild(star);}
+      const info=div2({style:{flex:'1'}},'');
+      const en=div2({style:{fontWeight:'600',fontSize:'14px',marginBottom:'2px'}},'');en.textContent=s.exercise;info.appendChild(en);
+      const ed=div2({style:{color:'#888',fontSize:'13px'}},'');ed.innerHTML=`${s.weight}kg × ${s.reps} · RPE ${s.rpe} · <span style="color:#FF6B00">1RM ${s.est1RM}kg</span>`;info.appendChild(ed);row.appendChild(info);
+      const meta=div2({style:{textAlign:'right',marginRight:'6px'}},'');meta.innerHTML=`<div style="font-size:10px;color:#4A4A4A">${s.split}</div><div style="font-size:10px;color:#4A4A4A">${s.muscleGroup}</div>`;row.appendChild(meta);
+      const del=btn2({style:{background:'none',border:'none',color:'#4A4A4A',padding:'4px'},onClick:()=>{const nd=clone(STATE);nd.workoutLog=nd.workoutLog.filter(e=>e.id!==s.id);saveAndRender(nd);}});del.innerHTML=ico('trash',15);row.appendChild(del);
+      page.appendChild(row);
+    });
+  }
+  return page;
+}
+
+// PR TAB
+function buildPRTab(){
+  const page=div2({'class':'page'},'');
+  const t=div2({'class':'section-title'},'');t.textContent='🏆 PERSONAL RECORDS';page.appendChild(t);
+  PR_EX.forEach(ex=>{
+    const pr=STATE.prs[ex];const card=div2({'class':'card'+(pr?' pr-border':'')},'');
+    const top=div2({style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:pr?'10px':'0'}},'');
+    const en=div2({style:{fontFamily:'Barlow Condensed,sans-serif',fontSize:'17px',fontWeight:'700'}},'');en.textContent=ex;top.appendChild(en);
+    if(pr){const b=mk('span',{style:{color:'#00E676',fontSize:'10px',fontWeight:'800',letterSpacing:'1px'}},'✓ SET');top.appendChild(b);}
+    else{const b=mk('span',{style:{color:'#4A4A4A',fontSize:'12px'}},'Δεν έχει καταγραφεί');top.appendChild(b);}
+    card.appendChild(top);
+    if(pr){const g=div2({'class':'stat-grid'},'');g.appendChild(statBox('ΒΑΡΟΣ',`${pr.weight}kg`,null,true));g.appendChild(statBox('ΕΠΑΝΑΛ.',pr.reps,null,true));g.appendChild(statBox('EST. 1RM',`${pr.est1RM}kg`,'#FF6B00',true));g.appendChild(statBox('RPE',pr.rpe,null,true));g.appendChild(statBox('ΗΜΕΡΟΜΗΝΙΑ',fmtDate(pr.date)));if(pr.prevEst1RM)g.appendChild(statBox('ΒΕΛΤΙΩΣΗ',`+${Math.round((pr.est1RM/pr.prevEst1RM-1)*100)}%`,'#00E676',true));card.appendChild(g);}
+    page.appendChild(card);
+  });
+  return page;
+}
+
+// VOLUME TAB
+function buildVolumeTab(){
+  const page=div2({'class':'page'},'');
+  const t=div2({'class':'section-title'},'');t.textContent='📊 ΕΒΔΟΜΑΔΙΑΙΟΣ ΟΓΚΟΣ';page.appendChild(t);
+  const currW=getWeek(today());const allW=[...new Set(STATE.workoutLog.map(e=>e.week))].sort((a,b)=>b-a);
+  const dispW=[...new Set([currW,...allW])].slice(0,8);if(!dispW.includes(volWeek))volWeek=currW;
+  const chips=div2({style:{display:'flex',gap:'6px',marginBottom:'16px',flexWrap:'wrap'}},'');
+  dispW.forEach(w=>{const c=btn2({'class':'chip '+(volWeek===w?'chip-on':'chip-off'),onClick:()=>{volWeek=w;renderApp();}},`W${w}`);chips.appendChild(c);});page.appendChild(chips);
+  const ws=STATE.workoutLog.filter(e=>e.week===volWeek);const bm=MUSCLES.reduce((a,m)=>({...a,[m]:0}),{});ws.forEach(e=>{if(bm.hasOwnProperty(e.muscleGroup))bm[e.muscleGroup]++;});
+  MUSCLES.forEach(m=>{
+    const[mn,mx]=VOL[m]||[8,16],sets=bm[m]||0,pct=Math.min(sets/mx*100,108);const col=sets===0?'#4A4A4A':sets>=mn?'#00E676':'#FF6B00';
+    const wrap=div2({style:{marginBottom:'14px'}},'');
+    const tr=div2({style:{display:'flex',justifyContent:'space-between',marginBottom:'5px'}},'');
+    const mn2=mk('span',{style:{fontWeight:'600',fontSize:'14px'}},'');mn2.textContent=m;tr.appendChild(mn2);
+    const sc=mk('span',{style:{fontSize:'13px'}},'');sc.innerHTML=`<b class="mono" style="color:${col}">${sets}</b><span style="color:#4A4A4A"> / ${mn}–${mx}</span>`;tr.appendChild(sc);
+    wrap.appendChild(tr);
+    const bar=div2({'class':'pbar-wrap'},'');const marker=div2({'class':'pbar-marker',style:{left:`${mn/mx*100}%`}},'');bar.appendChild(marker);const fill=div2({'class':'pbar-fill',style:{background:col,width:`${pct}%`}},'');bar.appendChild(fill);wrap.appendChild(bar);page.appendChild(wrap);
+  });
+  const tc=div2({'class':'card',style:{marginTop:'16px'}},'');
+  const tt=div2({style:{fontFamily:'Barlow Condensed,sans-serif',fontSize:'14px',fontWeight:'700',color:'#888',marginBottom:'10px'}},'');tt.textContent=`ΕΒΔΟΜΑΔΑ ${volWeek} — ΣΥΝΟΛΑ`;tc.appendChild(tt);
+  const tg=div2({'class':'stat-grid'},'');tg.appendChild(statBox('SETS',ws.length,null,true));tg.appendChild(statBox('ΑΣΚΗΣΕΙΣ',new Set(ws.map(e=>e.exercise)).size,null,true));tg.appendChild(statBox('ΟΓΚΟΣ (KG)',Math.round(ws.reduce((s,e)=>s+e.volume,0)).toLocaleString(),'#FF6B00',true));tc.appendChild(tg);page.appendChild(tc);
+  const leg=div2({style:{marginTop:'10px',display:'flex',gap:'16px',fontSize:'11px',color:'#4A4A4A'}},'');leg.innerHTML='<span style="color:#00E676">● Στόχος</span><span style="color:#FF6B00">● Κοντά</span><span>● 0 sets</span>';page.appendChild(leg);
+  return page;
+}
+
+// CHARTS TAB
+function buildChartsTab(){
+  const page=div2({'class':'page'},'');
+  const t=div2({'class':'section-title'},'');t.textContent='📈 ΕΞΕΛΙΞΗ 1RM';page.appendChild(t);
+  const es=mk('select',{style:{marginBottom:'16px'}},'');PR_EX.forEach(ex=>{const o=mk('option',{value:ex},ex);if(ex===chartEx)o.selected=true;es.appendChild(o);});
+  es.addEventListener('change',e=>{chartEx=e.target.value;renderApp();});page.appendChild(es);
+  const hist=STATE.oneRMHistory[chartEx]||{};
+  const cd=Object.entries(hist).sort((a,b)=>parseInt(a[0].slice(1))-parseInt(b[0].slice(1))).map(([k,v])=>({k,v}));
+  const first=cd[0],last=cd[cd.length-1];const imp=cd.length>1?Math.round((last.v/first.v-1)*100):null;
+  const cc=div2({'class':'card-lg'},'');
+  const cr=div2({style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}},'');
+  const cn=div2({style:{fontFamily:'Barlow Condensed,sans-serif',fontSize:'17px',fontWeight:'700',color:'#FF6B00'}},'');cn.textContent=chartEx;cr.appendChild(cn);
+  if(imp!==null){const ci=div2({style:{fontSize:'14px',color:imp>=0?'#00E676':'#FF453A',fontWeight:'700',fontFamily:'JetBrains Mono'}},'');ci.textContent=(imp>=0?'+':'')+imp+'%';cr.appendChild(ci);}
+  cc.appendChild(cr);cc.appendChild(buildChart(cd));
+  if(cd.length>1){const cl=div2({style:{display:'flex',gap:'16px',marginTop:'10px'}},'');cl.innerHTML=`<div style="font-size:12px;color:#888">Αρχή: <b style="color:#F0F0F0">${first.v}kg</b></div><div style="font-size:12px;color:#888">Τελευταίο: <b style="color:#FF6B00">${last.v}kg</b></div>`;cc.appendChild(cl);}
+  page.appendChild(cc);
+  let mW='',mV='';
+  const mc=div2({'class':'card'},'');
+  const mt=div2({style:{fontFamily:'Barlow Condensed,sans-serif',fontSize:'14px',fontWeight:'700',color:'#888',marginBottom:'12px'}},'');mt.textContent='ΧΕΙΡΟΚΙΝΗΤΗ ΕΙΣΑΓΩΓΗ';mc.appendChild(mt);
+  const mg=div2({'class':'grid2'},'');
+  const mww=div2({},'');mww.appendChild(lbl2('ΕΒΔΟΜΑΔΑ'));const mwi=inp2({type:'number',inputmode:'numeric',placeholder:'5'});mwi.addEventListener('input',e=>mW=e.target.value);mww.appendChild(mwi);mg.appendChild(mww);
+  const mvw=div2({},'');mvw.appendChild(lbl2('EST. 1RM (KG)'));const mvi=inp2({type:'number',inputmode:'decimal',placeholder:'105'});mvi.addEventListener('input',e=>mV=e.target.value);mvw.appendChild(mvi);mg.appendChild(mvw);
+  mc.appendChild(mg);
+  const mb2=btn2({'class':'btn-dark',style:{marginTop:'10px'},onClick:()=>{const w=parseInt(mW),v=parseFloat(mV);if(!w||!v)return;const nd=clone(STATE);if(!nd.oneRMHistory[chartEx])nd.oneRMHistory[chartEx]={};nd.oneRMHistory[chartEx]['W'+w]=v;mW='';mV='';saveAndRender(nd);}},'+ Προσθήκη');
+  mc.appendChild(mb2);page.appendChild(mc);return page;
+}
+
+// BODY TAB
+function buildBodyTab(){
+  const page=div2({'class':'page'},'');
+  const t=div2({'class':'section-title'},'');t.textContent='🏋️ ΣΩΜΑΤΟΜΕΤΡΗΣΕΙΣ';page.appendChild(t);
+  const latest=STATE.bodyMeasurements[0];
+  if(latest){const lc=div2({'class':'card'},'');const ll=div2({'class':'lbl',style:{marginBottom:'10px'}},'');ll.textContent='ΤΕΛΕΥΤΑΙΑ — '+fmtDate(latest.date);lc.appendChild(ll);const lg=div2({'class':'stat-grid'},'');if(latest.weight)lg.appendChild(statBox('ΒΑΡΟΣ',`${latest.weight}kg`,null,true));if(latest.bodyFat)lg.appendChild(statBox('ΛΙΠΟΣ',`${latest.bodyFat}%`,null,true));if(latest.leanMass)lg.appendChild(statBox('ΜΥΪΚΗ ΜΑΖΑ',`${latest.leanMass}kg`,'#00E676',true));if(latest.waist)lg.appendChild(statBox('ΜΕΣΗ',`${latest.waist}cm`,null,true));if(latest.chest)lg.appendChild(statBox('ΘΩΡΑΚΑΣ',`${latest.chest}cm`,null,true));if(latest.biceps)lg.appendChild(statBox('ΔΙΚΕΦΑΛΑ',`${latest.biceps}cm`,null,true));lc.appendChild(lg);page.appendChild(lc);}
+  const fc=div2({'class':'card-lg'},'');const ft=div2({style:{fontFamily:'Barlow Condensed,sans-serif',fontSize:'16px',fontWeight:'700',marginBottom:'12px'}},'');ft.textContent='+ ΝΕΑ ΜΕΤΡΗΣΗ';fc.appendChild(ft);
+  const dw=div2({'class':'mb10'},'');dw.appendChild(lbl2('ΗΜΕΡΟΜΗΝΙΑ'));const di=inp2({type:'date',value:bodyForm.date});di.addEventListener('change',e=>bodyForm.date=e.target.value);dw.appendChild(di);fc.appendChild(dw);
+  const fg=div2({'class':'grid2'},'');
+  BF_FIELDS.forEach(([k,l,p])=>{const fw=div2({},'');fw.appendChild(lbl2(l));const fi=inp2({type:'number',step:'.1',inputmode:'decimal',placeholder:p,value:bodyForm[k]||''});fi.addEventListener('input',e=>{bodyForm[k]=e.target.value;lmUpdate();});fw.appendChild(fi);fg.appendChild(fw);});
+  fc.appendChild(fg);
+  const lmBox=div2({id:'lm-box',style:{background:'#1A1A1A',borderRadius:'8px',padding:'8px 12px',marginTop:'10px',fontSize:'13px',display:'none'}},'');fc.appendChild(lmBox);
+  function lmUpdate(){const w=parseFloat(bodyForm.weight||'0'),bf=parseFloat(bodyForm.bodyFat||'0');if(w>0&&bf>0){const lm=+(w*(1-bf/100)).toFixed(1);lmBox.style.display='block';lmBox.innerHTML=`Μυϊκή Μάζα: <b style="color:#00E676">${lm}kg</b>`;}else lmBox.style.display='none';}
+  if(bodyForm.weight&&bodyForm.bodyFat)lmUpdate();
+  const sb=btn2({'class':'btn-orange',style:{marginTop:'12px'},onClick:()=>{const w=parseFloat(bodyForm.weight||'0'),bf=parseFloat(bodyForm.bodyFat||'0');const lm=(w>0&&bf>0)?+(w*(1-bf/100)).toFixed(1):null;const nd=clone(STATE);nd.bodyMeasurements.unshift({id:Date.now(),...bodyForm,week:getWeek(bodyForm.date),leanMass:lm});bodyForm=BF_FIELDS.reduce((a,[k])=>({...a,[k]:''}),{date:today(),notes:''});saveAndRender(nd);}},'ΑΠΟΘΗΚΕΥΣΗ');
+  fc.appendChild(sb);page.appendChild(fc);
+  STATE.bodyMeasurements.slice(0,10).forEach(m=>{const mc2=div2({'class':'card'},'');const mr=div2({style:{display:'flex',justifyContent:'space-between',marginBottom:'5px'}},'');const md=mk('span',{style:{fontWeight:'600',fontSize:'14px'}},'');md.textContent=fmtDate(m.date);mr.appendChild(md);const mwk=mk('span',{style:{fontSize:'12px',color:'#4A4A4A'}},'');mwk.textContent='Εβδ. '+m.week;mr.appendChild(mwk);mc2.appendChild(mr);const minfo=div2({style:{color:'#888',fontSize:'13px',display:'flex',gap:'12px',flexWrap:'wrap'}},'');if(m.weight)minfo.appendChild(mk('span',{},'⚖️ '+m.weight+'kg'));if(m.bodyFat)minfo.appendChild(mk('span',{},'🔥 '+m.bodyFat+'%'));if(m.leanMass)minfo.appendChild(mk('span',{style:{color:'#00E676'}},'💪 '+m.leanMass+'kg'));if(m.waist)minfo.appendChild(mk('span',{},'📏 '+m.waist+'cm'));mc2.appendChild(minfo);page.appendChild(mc2);});
+  return page;
+}
+
+// PLANNER TAB
+function buildPlannerTab(){
+  const page=div2({'class':'page'},'');
+  const t=div2({'class':'section-title'},'');t.textContent='📅 MESOCYCLE';page.appendChild(t);
+  const sub=div2({style:{color:'#4A4A4A',fontSize:'12px',marginBottom:'14px'}},'');sub.textContent=`Πλάνο vs Πραγματικό · ${STATE.mesocycle.weeks} εβδομάδες`;page.appendChild(sub);
+  const chips=div2({style:{display:'flex',gap:'5px',marginBottom:'16px',flexWrap:'wrap'}},'');
+  STATE.mesocycle.exercises.forEach(ex=>{const c=btn2({'class':'chip '+(plannerEx===ex?'chip-on':'chip-off'),onClick:()=>{plannerEx=ex;renderApp();}},ex);chips.appendChild(c);});page.appendChild(chips);
+  const ed=STATE.mesocycle.data[plannerEx]||{};
+  const card=div2({'class':'card'},'');
+  const et=div2({style:{fontFamily:'Barlow Condensed,sans-serif',fontSize:'17px',fontWeight:'700',color:'#FF6B00',marginBottom:'14px'}},'');et.textContent=plannerEx;card.appendChild(et);
+  const hr=div2({'class':'meso-row',style:{marginBottom:'8px'}},'');hr.appendChild(div2({},''));const ph=div2({'class':'lbl',style:{textAlign:'center'}},'');ph.textContent='ΠΛΑΝΟ';hr.appendChild(ph);const ah=div2({'class':'lbl',style:{textAlign:'center'}},'');ah.textContent='ΠΡΑΓΜΑΤΙΚΟ';hr.appendChild(ah);card.appendChild(hr);
+  for(let i=0;i<STATE.mesocycle.weeks;i++){
+    const row=div2({'class':'meso-row'},'');
+    const wl=div2({style:{fontFamily:'Barlow Condensed,sans-serif',fontWeight:'700',color:'#4A4A4A',fontSize:'14px'}},'');wl.textContent=`W${i+1}`;row.appendChild(wl);
+    const pi=inp2({type:'text',placeholder:'100×5',value:ed[`w${i+1}_plan`]||'',style:{padding:'7px 10px',fontSize:'13px'}});
+    pi.addEventListener('input',e=>{const nd=clone(STATE);if(!nd.mesocycle.data[plannerEx])nd.mesocycle.data[plannerEx]={};nd.mesocycle.data[plannerEx][`w${i+1}_plan`]=e.target.value;STATE=nd;saveData(nd);});row.appendChild(pi);
+    const ai=inp2({type:'text',placeholder:'—',value:ed[`w${i+1}_actual`]||'',style:{padding:'7px 10px',fontSize:'13px',borderColor:ed[`w${i+1}_actual`]?'#224422':'#262626'}});
+    ai.addEventListener('input',e=>{const nd=clone(STATE);if(!nd.mesocycle.data[plannerEx])nd.mesocycle.data[plannerEx]={};nd.mesocycle.data[plannerEx][`w${i+1}_actual`]=e.target.value;STATE=nd;saveData(nd);});row.appendChild(ai);
+    card.appendChild(row);
+  }
+  page.appendChild(card);return page;
+}
+
+// INSTALL BANNER
+function buildInstallBanner(){
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  if(!showInstall&&!isIOS)return null;
+  const ib=div2({'class':'install-banner'},'');
+  ib.innerHTML=`${ico('info',18,'#FF6B00')}<div style="flex:1;color:#888">${isIOS?'Πάτα <b style="color:#F0F0F0">□↑ Share → Add to Home Screen</b>':'Εγκατέστησε ως εφαρμογή'}</div>`;
+  if(!isIOS&&installPrompt){const ib2=btn2({'class':'pill pill-on',onClick:()=>{installPrompt.prompt();installPrompt.userChoice.then(()=>{showInstall=false;renderApp();});}});ib2.textContent='Εγκ/ση';ib.appendChild(ib2);}
+  const cl=btn2({'class':'pill pill-off',style:{fontSize:'14px'},onClick:()=>{showInstall=false;ib.remove();}});cl.textContent='✕';ib.appendChild(cl);
+  return ib;
+}
+
+// MAIN RENDER
+function renderApp(){
+  const root=document.getElementById('root');root.innerHTML='';
+  const wrap=div2({style:{minHeight:'100%',maxWidth:'480px',margin:'0 auto',display:'flex',flexDirection:'column',background:'#080808'}},'');
+  wrap.appendChild(buildHeader());
+  const banner=buildInstallBanner();if(banner)wrap.appendChild(banner);
+  const content=div2({style:{flex:'1',overflowY:'auto',paddingBottom:'72px'}},'');
+  if(TAB==='log')content.appendChild(buildLogTab());
+  else if(TAB==='pr')content.appendChild(buildPRTab());
+  else if(TAB==='volume')content.appendChild(buildVolumeTab());
+  else if(TAB==='charts')content.appendChild(buildChartsTab());
+  else if(TAB==='body')content.appendChild(buildBodyTab());
+  else if(TAB==='planner')content.appendChild(buildPlannerTab());
+  wrap.appendChild(content);wrap.appendChild(buildNav());root.appendChild(wrap);
+}
+
+// PWA MANIFEST
+(function(){
+  const mkIco=sz=>{const c=document.createElement('canvas');c.width=c.height=sz;const ctx=c.getContext('2d'),r=sz*.22;ctx.fillStyle='#FF6B00';ctx.beginPath();ctx.moveTo(r,0);ctx.lineTo(sz-r,0);ctx.quadraticCurveTo(sz,0,sz,r);ctx.lineTo(sz,sz-r);ctx.quadraticCurveTo(sz,sz,sz-r,sz);ctx.lineTo(r,sz);ctx.quadraticCurveTo(0,sz,0,sz-r);ctx.lineTo(0,r);ctx.quadraticCurveTo(0,0,r,0);ctx.closePath();ctx.fill();ctx.font=(sz*.55)+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('⚡',sz/2,sz*.54);return c.toDataURL('image/png');};
+  const i192=mkIco(192),i512=mkIco(512);
+  const li=document.createElement('link');li.rel='apple-touch-icon';li.href=i192;document.head.appendChild(li);
+  const m={name:'IronLog — Workout Tracker',short_name:'IronLog',description:'Workout Tracker',start_url:location.href,display:'standalone',orientation:'portrait',theme_color:'#FF6B00',background_color:'#080808',icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any maskable'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
+  const blob=new Blob([JSON.stringify(m)],{type:'application/manifest+json'});
+  const lm=document.createElement('link');lm.rel='manifest';lm.href=URL.createObjectURL(blob);document.head.appendChild(lm);
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;showInstall=true;});
+})();
+
+// SERVICE WORKER
+if('serviceWorker' in navigator){
+  const sw=`const C='il1';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['${location.href}'])).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));self.addEventListener('fetch',e=>{if(!e.request.url.startsWith('http'))return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(!res||res.status!==200||res.type!=='basic')return res;const rc=res.clone();caches.open(C).then(c=>c.put(e.request,rc));return res;})));});`;
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
+}
+
+renderApp();
+</script>
+</body>
+</html>
