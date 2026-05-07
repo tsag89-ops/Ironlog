@@ -61,6 +61,7 @@ button{cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparen
 .condensed{font-family:'Barlow Condensed',sans-serif;font-weight:700}
 .meso-row{display:grid;grid-template-columns:48px 1fr 1fr;gap:6px;margin-bottom:6px;align-items:center}
 .install-banner{background:#1A1200;border:1px solid #FF6B00;border-radius:10px;padding:10px 14px;margin:0 16px 12px;display:flex;align-items:center;gap:10px;font-size:13px}
+@keyframes pulse{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
 </style>
 </head>
 <body>
@@ -119,9 +120,105 @@ function buildChart(data,color){
 }
 
 // Rest timer
-const startRest=()=>{clearInterval(restTimer);restLeft=restDur;restActive=true;updateRestUI();restTimer=setInterval(()=>{restLeft--;if(restLeft<=0){clearInterval(restTimer);restActive=false;restLeft=0;}updateRestUI();},1000);};
-const skipRest=()=>{clearInterval(restTimer);restActive=false;restLeft=0;updateRestUI();};
-const updateRestUI=()=>{const box=$('rest-box');if(!box)return;if(!restActive&&restLeft===0){box.style.display='none';return;}box.style.display='flex';const rc=restLeft<30?'#FF6B00':'#00E676';box.style.background=restLeft<30?'#180800':'#041408';box.style.borderColor=rc;const tEl=$('rest-time');if(tEl){tEl.textContent=`REST — ${Math.floor(restLeft/60)}:${String(restLeft%60).padStart(2,'0')}`;tEl.style.color=rc;}const fill=$('rest-fill');if(fill){fill.style.background=rc;fill.style.width=`${restLeft/restDur*100}%`;}};
+// ── FEEDBACK: audio + vibration + notification ──────────────
+const isIOS=()=>/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+const isStandalone=()=>window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+
+// Audio — iOS needs resume() before every play
+let audioCtx=null;
+function getAudioCtx(){
+  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+// Unlock audio on first user gesture (critical for iOS)
+function unlockAudio(){
+  try{
+    const ctx=getAudioCtx();
+    if(ctx.state==='suspended')ctx.resume();
+    // play a silent buffer to fully unlock on iOS
+    const buf=ctx.createBuffer(1,1,22050);
+    const src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);src.start(0);
+  }catch(e){}
+}
+document.addEventListener('touchend',unlockAudio,{once:true,passive:true});
+document.addEventListener('click',unlockAudio,{once:true,passive:true});
+
+function beep(freq,dur,vol,type,delay){
+  try{
+    const ctx=getAudioCtx();
+    if(ctx.state==='suspended'){ctx.resume().then(()=>beep(freq,dur,vol,type,delay));return;}
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type=type||'sine';o.frequency.value=freq||880;
+    const t=ctx.currentTime+(delay||0);
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(vol||0.4,t+0.01);
+    g.gain.exponentialRampToValueAtTime(0.001,t+(dur||0.3));
+    o.start(t);o.stop(t+(dur||0.3)+0.05);
+  }catch(e){}
+}
+function playRestDone(){beep(523,0.15,0.5,'sine',0);beep(659,0.15,0.5,'sine',0.16);beep(784,0.35,0.6,'sine',0.32);}
+function playTick(){beep(440,0.06,0.15,'square',0);}
+function playWarning(){beep(660,0.1,0.3,'sawtooth',0);beep(660,0.1,0.3,'sawtooth',0.2);}
+function vibrate(pattern){try{if(navigator.vibrate)navigator.vibrate(pattern);}catch(e){}}
+
+// Notifications — iOS 16.4+ supports them only in standalone PWA mode
+function canNotify(){
+  if(!('Notification' in window))return false;
+  if(isIOS()&&!isStandalone())return false; // iOS requires installed PWA
+  return true;
+}
+function requestNotifPerm(){
+  if(canNotify()&&Notification.permission==='default')Notification.requestPermission();
+}
+function fireNotification(title,body){
+  try{
+    if(canNotify()&&Notification.permission==='granted'){
+      // iOS PWA: use ServiceWorker showNotification for reliability
+      if(isIOS()&&'serviceWorker' in navigator&&navigator.serviceWorker.controller){
+        navigator.serviceWorker.ready.then(reg=>{
+          reg.showNotification(title,{body,tag:'ironlog-rest',renotify:true,requireInteraction:false});
+        });
+      } else {
+        const n=new Notification(title,{body,tag:'ironlog-rest',renotify:true,requireInteraction:false,silent:false});
+        setTimeout(()=>n.close(),6000);
+      }
+    }
+  }catch(e){}
+}
+
+const startRest=()=>{
+  clearInterval(restTimer);restLeft=restDur;restActive=true;
+  requestNotifPerm();
+  updateRestUI();
+  vibrate([40]);
+  restTimer=setInterval(()=>{
+    restLeft--;
+    if(restLeft<=0){
+      clearInterval(restTimer);restActive=false;restLeft=0;
+      playRestDone();
+      vibrate([200,80,200,80,400]);
+      fireNotification('⚡ IronLog — Ώρα για το επόμενο set!','Το rest τελείωσε. Πάρε θέση!');
+    } else {
+      if(restLeft===10||restLeft===5||restLeft===3){playWarning();vibrate([60,40,60]);}
+      else if(restLeft<=10){playTick();vibrate([20]);}
+    }
+    updateRestUI();
+  },1000);
+};
+const skipRest=()=>{clearInterval(restTimer);restActive=false;restLeft=0;vibrate([30]);updateRestUI();};
+const updateRestUI=()=>{
+  const box=$('rest-box');if(!box)return;
+  if(!restActive&&restLeft===0){box.style.display='none';return;}
+  box.style.display='flex';
+  const rc=restLeft<30?'#FF6B00':'#00E676';
+  box.style.background=restLeft<30?'#180800':'#041408';
+  box.style.borderColor=rc;
+  const tEl=$('rest-time');if(tEl){tEl.textContent=`REST — ${Math.floor(restLeft/60)}:${String(restLeft%60).padStart(2,'0')}`;tEl.style.color=rc;}
+  const fill=$('rest-fill');if(fill){fill.style.background=rc;fill.style.width=`${restLeft/restDur*100}%`;}
+  // pulse animation on last 10s
+  if(restLeft<=10&&restLeft>0&&tEl){tEl.style.animation='none';void tEl.offsetWidth;tEl.style.animation='pulse 1s ease-in-out';}
+};
 
 // Export / Import
 function exportData(){
@@ -248,7 +345,10 @@ function buildLogTab(){
     if(isPR)nd.prs[logState.exercise]={weight:w,reps:r,est1RM:est,date:logState.date,rpe:parseFloat(logState.rpe),prevEst1RM:prevPR?prevPR.est1RM:null};
     if(!nd.oneRMHistory[logState.exercise])nd.oneRMHistory[logState.exercise]={};
     const wk='W'+week;if(!nd.oneRMHistory[logState.exercise][wk]||est>nd.oneRMHistory[logState.exercise][wk])nd.oneRMHistory[logState.exercise][wk]=est;
-    logState.reps='';logState.notes='';startRest();saveAndRender(nd);
+    logState.reps='';logState.notes='';
+    // unlock audio + request notif on real user gesture
+    unlockAudio();requestNotifPerm();
+    startRest();saveAndRender(nd);
   }},'LOG SET →');
   form.appendChild(logBtn);page.appendChild(form);
 
@@ -432,7 +532,13 @@ function renderApp(){
 
 // SERVICE WORKER
 if('serviceWorker' in navigator){
-  const sw=`const C='il1';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['${location.href}'])).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));self.addEventListener('fetch',e=>{if(!e.request.url.startsWith('http'))return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(!res||res.status!==200||res.type!=='basic')return res;const rc=res.clone();caches.open(C).then(c=>c.put(e.request,rc));return res;})));});`;
+  const sw=`
+const C='il2';
+self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['${location.href}'])).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>{if(!e.request.url.startsWith('http'))return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(!res||res.status!==200||res.type!=='basic')return res;const rc=res.clone();caches.open(C).then(c=>c.put(e.request,rc));return res;})));});
+self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(clients.matchAll({type:'window'}).then(cs=>{if(cs.length)cs[0].focus();else clients.openWindow('/');})});
+  `;
   navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
 }
 
